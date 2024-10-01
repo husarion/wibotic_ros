@@ -18,7 +18,7 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>python-future</exec_depend>
   <exec_depend>uavcan-pip</exec_depend>
-  <exec_depend>wibotic_msg</exec_depend>
+  <!-- <exec_depend>wibotic_msg</exec_depend> -->
 
   <export>
   </export>

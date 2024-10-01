@@ -1,50 +1,58 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.10.2)
 project(wibotic_connector_can)
+# Handle superbuild first
+# option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 
-find_package(catkin REQUIRED COMPONENTS
-  rospy
-  std_msgs
-  message_generation
+# if(USE_SUPERBUILD)
+#   project(SUPERBUILD NONE)
+#   include(cmake/SuperBuild.cmake)
+#   return()
+# else()
+#   project(wibotic_connector_can)
+# endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+set(PACKAGE_DEPENDENCIES
+    ament_cmake
+    PkgConfig
 )
 
-catkin_python_setup()
+foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
+  find_package(${PACKAGE} REQUIRED)
+endforeach()
 
-###################################
-## catkin specific configuration ##
-###################################
-
-catkin_package(
- LIBRARIES wibotic_connector_can
- CATKIN_DEPENDS rospy std_msgs message_runtime wibotic_msg
-)
-
-###########
-## Build ##
-###########
+find_library(UAVCAN_LIB uavcan REQUIRED)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Werror -std=c++11")
 
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/platform_specific_components/linux/libuavcan/include
 )
 
-#############
-## Install ##
-#############
-
-catkin_install_python(
-  PROGRAMS src/wibotic_connector_can/wiboticros.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}/lib/libcyphal/libuavcan/include
 )
 
-install(
-  DIRECTORY
-  launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+add_executable(wibotic_connector_can src/main.cpp)
+
+target_include_directories(wibotic_connector_can
+  BEFORE
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/platform_specific_components/linux/libuavcan/uavcan_linux
+)
+target_include_directories(wibotic_connector_can
+  PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(wibotic_connector_can ${PACKAGE_DEPENDENCIES})
+
+target_link_libraries(wibotic_connector_can
+    ${UAVCAN_LIB}
 )
 
-install(
-  DIRECTORY
-  src/wibotic_connector_can/uavcan_v0
-  src/wibotic_connector_can/uavcan_v1
-  src/wibotic_connector_can/uavcan_vendor_specific_types
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+install(TARGETS wibotic_connector_can DESTINATION lib/${PROJECT_NAME})
+
+
+ament_package()
