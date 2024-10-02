@@ -49,10 +49,26 @@ target_include_directories(wibotic_connector_can
 ament_target_dependencies(wibotic_connector_can ${PACKAGE_DEPENDENCIES})
 
 target_link_libraries(wibotic_connector_can
-    ${UAVCAN_LIB}
+    ${UAVCAN_LIB} rt
 )
 
-install(TARGETS wibotic_connector_can DESTINATION lib/${PROJECT_NAME})
+add_executable(script src/script.cpp)
+target_include_directories(script
+  BEFORE
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/platform_specific_components/linux/libuavcan/uavcan_linux
+)
+target_include_directories(script
+  PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(script ${PACKAGE_DEPENDENCIES})
+
+target_link_libraries(script
+    ${UAVCAN_LIB} rt
+)
+
+install(TARGETS script wibotic_connector_can DESTINATION lib/${PROJECT_NAME})
 
 
 ament_package()
