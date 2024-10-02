@@ -12,38 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <algorithm>
 #include <iostream>
 #include <memory>
-#include <queue>
+#include <stdexcept>
 
-#include <uavcan_linux/uavcan_linux.hpp>
-#include <uavcan/helpers/ostream.hpp>
+#include <rclcpp/rclcpp.hpp>
 
-#include "wibotic_connector_can/wibotic_can_driver.hpp"
-#include "wibotic_connector_can/uavcan_types/wibotic/WiBoticInfo.hpp"
+#include "wibotic_connector_can/wibotic_can_driver_node.hpp"
 
-
-
-int main()
+int main(int argc, char ** argv)
 {
-  std::cout << "Starting Wibotic CAN driver" << std::endl;
-  wibotic_connector_can::WiboticCanDriver wibotic_can_driver("can0", 20, "com.wibotic.ros_connector");
-  wibotic_can_driver.CreateUavCanNode();
-  wibotic_can_driver.CreateWiboticInfoSubscriber();
-  wibotic_can_driver.Activate();
+  rclcpp::init(argc, argv);
 
-  while (true)
-  {
-    wibotic_can_driver.Spin(10);
-    try
-    {
-      std::cout << wibotic_can_driver.GetWiboticInfo() << std::endl;
-    }
-    catch (const std::runtime_error& e)
-    {
-      std::cerr << e.what() << '\n';
-    }
+  auto wibotic_can_driver_node = std::make_shared<wibotic_connector_can::WiboticCanDriverNode>("wibotic_can_driver");
+
+  try {
+    rclcpp::spin(wibotic_can_driver_node);
+  } catch (const std::runtime_error & e) {
+    std::cerr << "[wibotic_can_driver] Caught exception: " << e.what() << std::endl;
   }
+
+  std::cout << "[wibotic_can_driver] Shutting down" << std::endl;
+  rclcpp::shutdown();
   return 0;
 }

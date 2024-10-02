@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef WIBOTIC_CONNECTOR_CAN_WIBOTIC_CONNECTOR_CAN_HPP_
-#define WIBOTIC_CONNECTOR_CAN_WIBOTIC_CONNECTOR_CAN_HPP_
+#ifndef WIBOTIC_CONNECTOR_CAN_WIBOTIC_CAN_DRIVER_HPP_
+#define WIBOTIC_CONNECTOR_CAN_WIBOTIC_CAN_DRIVER_HPP_
 
 #include <memory>
 #include <queue>
@@ -43,30 +43,15 @@ public:
   virtual void CreateUavCanNode() = 0;
 
   /**
-   * @brief Destroys the UAVCAN node.
-   */
-  virtual void DestroyUavCanNode() = 0;
-
-  /**
    * @brief Creates the WiboticInfo subscriber.
    */
   virtual void CreateWiboticInfoSubscriber() = 0;
-
-  /**
-   * @brief Destroys the WiboticInfo subscriber.
-   */
-  virtual void DestroyWiboticInfoSubscriber() = 0;
 
   /**
    * @brief Activates the Wibotic CAN driver.
    *
    */
   virtual void Activate() = 0;
-
-  /**
-   * @brief Deactivates the Wibotic CAN driver.
-   */
-  virtual void Deactivate() = 0;
 
   /**
    * @brief Spins the Wibotic CAN driver.
@@ -92,7 +77,6 @@ public:
    */
   using UniquePtr = std::unique_ptr<WiboticCanDriverInterface>;
 };
-
 
 /**
  * @brief Class for the Wibotic CAN driver.
@@ -122,15 +106,8 @@ public:
    */
   void CreateUavCanNode() override;
 
-  /**
-   * @brief Destroys the UAVCAN node.
-   *
-   * @exception Thrown if the UAVCAN node does not exist.
-   */
-  void DestroyUavCanNode() override;
 
   void CreateWiboticInfoSubscriber() override;
-  void DestroyWiboticInfoSubscriber() override;
 
   /**
    * @brief Activates the Wibotic CAN driver.
@@ -140,15 +117,6 @@ public:
    * @exception std::runtime_error Thrown if the node or subscriber does not exist and they does not start properly.
    */
   void Activate() override;
-
-  /**
-   * @brief Deactivates the Wibotic CAN driver.
-   *
-   * It stops the UAVCAN node and the Wibotic subscriber.
-   *
-   * @exception std::runtime_error Thrown if not activated before.
-   */
-  void Deactivate() override;
 
   /**
    * @brief Spins the Wibotic CAN driver.
@@ -169,6 +137,15 @@ public:
   wibotic::WiBoticInfo GetWiboticInfo() override;
 
 protected:
+  /**
+   * @brief Callback for the WiboticInfo message.
+   *
+   * Adds uavcan messages to the queue.
+   *
+   * @param msg The WiboticInfo message.
+   */
+  void WiboticInfoCallback(const wibotic::WiBoticInfo& msg);
+
   std::string can_iface_name_;
   std::size_t node_id_;
   std::string node_name_;
@@ -178,17 +155,8 @@ protected:
   std::shared_ptr<uavcan::Subscriber<wibotic::WiBoticInfo>> wibotic_info_uavcan_sub_;
 
   std::queue<wibotic::WiBoticInfo> wibotic_info_queue_;
-
-  /**
-   * @brief Callback for the WiboticInfo message.
-   *
-   * Adds uavcan messages to the queue.
-   *
-   * @param msg The WiboticInfo message.
-   */
-  void WiboticInfoCallback(const wibotic::WiBoticInfo& msg);
 };
 
 }  // namespace wibotic_connector_can
 
-#endif  // WIBOTIC_CONNECTOR_CAN_WIBOTIC_CONNECTOR_CAN_HPP_
+#endif  // WIBOTIC_CONNECTOR_CAN_WIBOTIC_CAN_DRIVER_HPP_

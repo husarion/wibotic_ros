@@ -28,27 +28,9 @@ void WiboticCanDriver::CreateUavCanNode()
   uavcan_node_->setName(node_name_.c_str());
 }
 
-void WiboticCanDriver::DestroyUavCanNode()
-{
-  if (!uavcan_node_)
-  {
-    throw std::runtime_error("Trying to destroy nonexisting node.");
-  }
-  uavcan_node_.reset();
-}
-
 void WiboticCanDriver::CreateWiboticInfoSubscriber()
 {
   wibotic_info_uavcan_sub_ = std::make_shared<uavcan::Subscriber<wibotic::WiBoticInfo>>(*uavcan_node_);
-}
-
-void WiboticCanDriver::DestroyWiboticInfoSubscriber()
-{
-  if (!wibotic_info_uavcan_sub_)
-  {
-    throw std::runtime_error("Trying to destroy nonexisting subscriber.");
-  }
-  wibotic_info_uavcan_sub_.reset();
 }
 
 void WiboticCanDriver::Activate()
@@ -74,13 +56,6 @@ void WiboticCanDriver::Activate()
   uavcan_node_->setModeOperational();
 
   activated_ = true;
-}
-
-void WiboticCanDriver::Deactivate()
-{
-  DestroyUavCanNode();
-  DestroyWiboticInfoSubscriber();
-  activated_ = false;
 }
 
 void WiboticCanDriver::Spin(std::size_t miliseconds)

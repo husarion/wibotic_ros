@@ -1,25 +1,21 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>wibotic_connector_can</name>
-  <version>0.0.1</version>
-  <description>The wibotic_connector_can package</description>
-  <maintainer email="info@wibotic.com">WiBotic Inc.</maintainer>
-  <license>BSD 3-Clause</license>
-  <url type="website">https://www.wibotic.com</url>
+  <version>2.1.0</version>
+  <description>Integration Panther with Wibotic charger</description>
 
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_export_depend>rospy</build_export_depend>
-  <build_export_depend>std_msgs</build_export_depend>
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>python-future</exec_depend>
-  <exec_depend>uavcan-pip</exec_depend>
-  <!-- <exec_depend>wibotic_msg</exec_depend> -->
+  <maintainer email="support@husarion.com">Husarion</maintainer>
+  <license>Apache License 2.0</license>
 
-  <export>
-  </export>
+  <url type="website">https://husarion.com/</url>
+  <url type="repository">https://github.com/husarion/panther_ros</url>
+  <url type="bugtracker">https://github.com/husarion/panther_ros/issues</url>
+
+  <author email="jakub.delicat@husarion.com">Jakub Delicat</author>
+
+  <depend>rclcpp</depend>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
 </package>
