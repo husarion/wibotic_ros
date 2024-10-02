@@ -16,6 +16,12 @@
 #define WIBOTIC_CONNECTOR_CAN_WIBOTIC_CONNECTOR_CAN_HPP_
 
 #include <memory>
+#include <queue>
+
+#include <uavcan_linux/uavcan_linux.hpp>
+#include <uavcan/helpers/ostream.hpp>
+
+#include "wibotic_connector_can/uavcan_types/wibotic/WiBoticInfo.hpp"
 
 namespace wibotic_connector_can
 {
@@ -31,15 +37,50 @@ public:
    */
   virtual ~WiboticCanDriverInterface() = default;
 
-  virtual void Activate() = 0;
-  virtual void Deactivate() = 0;
-
+  /**
+   * @brief Creates the UAVCAN node.
+   */
   virtual void CreateUavCanNode() = 0;
+
+  /**
+   * @brief Destroys the UAVCAN node.
+   */
   virtual void DestroyUavCanNode() = 0;
 
+  /**
+   * @brief Creates the WiboticInfo subscriber.
+   */
   virtual void CreateWiboticInfoSubscriber() = 0;
 
+  /**
+   * @brief Destroys the WiboticInfo subscriber.
+   */
+  virtual void DestroyWiboticInfoSubscriber() = 0;
+
+  /**
+   * @brief Activates the Wibotic CAN driver.
+   *
+   */
+  virtual void Activate() = 0;
+
+  /**
+   * @brief Deactivates the Wibotic CAN driver.
+   */
+  virtual void Deactivate() = 0;
+
+  /**
+   * @brief Spins the Wibotic CAN driver.
+   *
+   * @param microseconds The time to spin in microseconds.
+   */
   virtual void Spin(std::size_t microseconds) = 0;
+
+  /**
+   * @brief Gets the WiboticInfo message.
+   *
+   * @return The WiboticInfo message.
+   */
+  virtual wibotic::WiBoticInfo GetWiboticInfo() = 0;
 
   /**
    * @brief Alias for a shared pointer to a WiboticCanDriverInterface object.
@@ -50,14 +91,103 @@ public:
    * @brief Alias for a unique pointer to a WiboticCanDriverInterface object.
    */
   using UniquePtr = std::unique_ptr<WiboticCanDriverInterface>;
-
-protected:
-
 };
 
 
+/**
+ * @brief Class for the Wibotic CAN driver.
+ *
+ * This class inherits from the `WiboticCanDriverInterface` and implements its methods.
+ * Class communicates with CAN interface and gets WiboticInfo messages.
+ */
+class WiboticCanDriver : public WiboticCanDriverInterface
+{
+  typedef uavcan::MethodBinder<WiboticCanDriver*, void (WiboticCanDriver::*)(const wibotic::WiBoticInfo&)>
+      WiBoticInfoCallbackBinder;
 
+public:
+  /**
+   * @brief Constructor for the WiboticCanDriver class.
+   *
+   * @param can_iface_name The name of the CAN interface.
+   * @param node_id The ID of the node.
+   * @param node_name The name of the node.
+   *
+   * @exception std::runtime_error Thrown if can interface cannot be found.
+   */
+  WiboticCanDriver(const std::string& can_iface_name, std::size_t node_id, const std::string& node_name);
 
+  /**
+   * @brief Creates the UAVCAN node.
+   */
+  void CreateUavCanNode() override;
+
+  /**
+   * @brief Destroys the UAVCAN node.
+   *
+   * @exception Thrown if the UAVCAN node does not exist.
+   */
+  void DestroyUavCanNode() override;
+
+  void CreateWiboticInfoSubscriber() override;
+  void DestroyWiboticInfoSubscriber() override;
+
+  /**
+   * @brief Activates the Wibotic CAN driver.
+   *
+   * It starts the UAVCAN node, sets it to operational mode and starts Wibotic subscriber.
+   *
+   * @exception std::runtime_error Thrown if the node or subscriber does not exist and they does not start properly.
+   */
+  void Activate() override;
+
+  /**
+   * @brief Deactivates the Wibotic CAN driver.
+   *
+   * It stops the UAVCAN node and the Wibotic subscriber.
+   *
+   * @exception std::runtime_error Thrown if not activated before.
+   */
+  void Deactivate() override;
+
+  /**
+   * @brief Spins the Wibotic CAN driver.
+   *
+   * @param microseconds The time to spin in microseconds.
+   *
+   * @exception std::runtime_error Thrown if the node or subscriber does not spin properly.
+   */
+  void Spin(std::size_t microseconds) override;
+
+  /**
+   * @brief Gets the WiboticInfo message.
+   *
+   * @return The WiboticInfo message.
+   *
+   * @exception std::runtime_error Thrown if the WiboticInfo message queue is empty.
+   */
+  wibotic::WiBoticInfo GetWiboticInfo() override;
+
+protected:
+  std::string can_iface_name_;
+  std::size_t node_id_;
+  std::string node_name_;
+  bool activated_ = false;
+
+  uavcan_linux::NodePtr uavcan_node_;
+  std::shared_ptr<uavcan::Subscriber<wibotic::WiBoticInfo>> wibotic_info_uavcan_sub_;
+
+  std::queue<wibotic::WiBoticInfo> wibotic_info_queue_;
+
+  /**
+   * @brief Callback for the WiboticInfo message.
+   *
+   * Adds uavcan messages to the queue.
+   *
+   * @param msg The WiboticInfo message.
+   */
+  void WiboticInfoCallback(const wibotic::WiBoticInfo& msg);
+};
 
 }  // namespace wibotic_connector_can
 

@@ -35,7 +35,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/lib/libcyphal/libuavcan/include
 )
 
-add_executable(wibotic_connector_can src/main.cpp)
+add_executable(wibotic_connector_can src/main.cpp src/wibotic_can_driver.cpp)
 
 target_include_directories(wibotic_connector_can
   BEFORE
@@ -49,22 +49,6 @@ target_include_directories(wibotic_connector_can
 ament_target_dependencies(wibotic_connector_can ${PACKAGE_DEPENDENCIES})
 
 target_link_libraries(wibotic_connector_can
-    ${UAVCAN_LIB} rt
-)
-
-add_executable(script src/script.cpp)
-target_include_directories(script
-  BEFORE
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/lib/platform_specific_components/linux/libuavcan/uavcan_linux
-)
-target_include_directories(script
-  PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>)
-
-ament_target_dependencies(script ${PACKAGE_DEPENDENCIES})
-
-target_link_libraries(script
     ${UAVCAN_LIB} rt
 )
 
