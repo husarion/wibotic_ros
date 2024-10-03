@@ -23,7 +23,9 @@ WiboticCanDriverNode::WiboticCanDriverNode(const std::string& node_name, const r
   DeclareParameters();
   GetParameters();
 
-  CreateUavCanNode();
+  CreateWiboticCanDriver();
+
+  wibotic_info_pub_ = this->create_publisher<wibotic_msgs::msg::WiboticInfo>("wibotic_info", 10);
 
   wibotic_info_timer_ = this->create_wall_timer(std::chrono::duration<float>(update_time_s_),
                                                 std::bind(&WiboticCanDriverNode::WiboticInfoTimerCallback, this));
@@ -32,7 +34,6 @@ WiboticCanDriverNode::WiboticCanDriverNode(const std::string& node_name, const r
 
   RCLCPP_INFO(this->get_logger(), "Node constructed successfully.");
 }
-
 
 void WiboticCanDriverNode::DeclareParameters()
 {
@@ -50,7 +51,7 @@ void WiboticCanDriverNode::GetParameters()
   update_time_s_ = this->get_parameter("update_time_s").as_double();
 }
 
-void WiboticCanDriverNode::CreateUavCanNode()
+void WiboticCanDriverNode::CreateWiboticCanDriver()
 {
   wibotic_can_driver_ = std::make_unique<WiboticCanDriver>(can_iface_name_, uavcan_node_id_, uavcan_node_name_);
   wibotic_can_driver_->CreateUavCanNode();
@@ -67,15 +68,35 @@ void WiboticCanDriverNode::WiboticInfoTimerCallback()
 
   try
   {
-    RCLCPP_INFO(this->get_logger(), "Getting WiboticInfo message.");
-    wibotic_can_driver_->Spin(1000);
+    const auto update_time_ms = static_cast<std::size_t>(update_time_s_ * 1000);
+    wibotic_can_driver_->Spin(update_time_ms);
     auto wibotic_info = wibotic_can_driver_->GetWiboticInfo();
-    RCLCPP_INFO_STREAM(this->get_logger(), "Got WiboticInfo message: " << std::endl << wibotic_info);
+
+    wibotic_info_pub_->publish(ConvertWiboticInfoToMsg(wibotic_info));
   }
   catch (const std::runtime_error& e)
   {
     RCLCPP_WARN(this->get_logger(), e.what());
   }
+}
+
+wibotic_msgs::msg::WiboticInfo WiboticCanDriverNode::ConvertWiboticInfoToMsg(const wibotic::WiBoticInfo& wibotic_info)
+{
+  wibotic_msgs::msg::WiboticInfo wibotic_info_msg;
+
+  wibotic_info_msg.header.stamp = this->now();
+  wibotic_info_msg.header.frame_id = "wibotic_receiver";
+  wibotic_info_msg.v_mon_batt = wibotic_info.VMonBatt;
+  wibotic_info_msg.i_battery = wibotic_info.IBattery;
+  wibotic_info_msg.v_rect = wibotic_info.VRect;
+  wibotic_info_msg.v_mon_charger = wibotic_info.VMonCharger;
+  wibotic_info_msg.t_board = wibotic_info.TBoard;
+  wibotic_info_msg.target_i_batt = wibotic_info.TargetIBatt;
+  wibotic_info_msg.i_charger = wibotic_info.ICharger;
+  wibotic_info_msg.i_single_charger2 = wibotic_info.ISingleCharger2;
+  wibotic_info_msg.i_single_charger3 = wibotic_info.ISingleCharger3;
+
+  return wibotic_info_msg;
 }
 
 }  // namespace wibotic_connector_can

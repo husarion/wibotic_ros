@@ -1,48 +1,21 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(wibotic_msg)
+cmake_minimum_required(VERSION 3.10.2)
+project(wibotic_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
-  std_msgs
-  message_generation
-)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-################################################
-## Declare ROS messages, services and actions ##
-################################################
+find_package(ament_cmake REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_msgs REQUIRED)
 
-## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  WiBoticInfo.msg
-)
-
-## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  ReadParameter.srv
-  WriteParameter.srv
-  ListParameters.srv
-  SaveParameters.srv
-)
-
-## Generate added messages and services with any dependencies listed here
-generate_messages(
+rosidl_generate_interfaces(
+  ${PROJECT_NAME}
+  "msg/WiboticInfo.msg"
   DEPENDENCIES
-  std_msgs
-)
+  std_msgs)
 
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
- CATKIN_DEPENDS std_msgs message_runtime
-)
+ament_export_dependencies(rosidl_default_runtime)
 
-###########
-## Build ##
-###########
-
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
-
+ament_package()

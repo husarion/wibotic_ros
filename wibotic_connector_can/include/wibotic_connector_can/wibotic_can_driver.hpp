@@ -56,9 +56,9 @@ public:
   /**
    * @brief Spins the Wibotic CAN driver.
    *
-   * @param microseconds The time to spin in microseconds.
+   * @param miliseconds The time to spin in miliseconds.
    */
-  virtual void Spin(std::size_t microseconds) = 0;
+  virtual void Spin(std::size_t miliseconds) = 0;
 
   /**
    * @brief Gets the WiboticInfo message.
@@ -121,11 +121,11 @@ public:
   /**
    * @brief Spins the Wibotic CAN driver.
    *
-   * @param microseconds The time to spin in microseconds.
+   * @param miliseconds The time to spin in miliseconds.
    *
    * @exception std::runtime_error Thrown if the node or subscriber does not spin properly.
    */
-  void Spin(std::size_t microseconds) override;
+  void Spin(std::size_t miliseconds) override;
 
   /**
    * @brief Gets the WiboticInfo message.

@@ -19,6 +19,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include "wibotic_msgs/msg/wibotic_info.hpp"
+
 #define UAVCAN_CPP_VERSION UAVCAN_CPP11
 #include "wibotic_connector_can/wibotic_can_driver.hpp"
 
@@ -34,7 +36,7 @@ protected:
   void DeclareParameters();
   void GetParameters();
 
-  void CreateUavCanNode();
+  void CreateWiboticCanDriver();
 
   std::string can_iface_name_;
   std::size_t uavcan_node_id_;
@@ -44,8 +46,11 @@ protected:
   std::unique_ptr<WiboticCanDriver> wibotic_can_driver_;
 
   rclcpp::TimerBase::SharedPtr wibotic_info_timer_;
+  rclcpp::Publisher<wibotic_msgs::msg::WiboticInfo>::SharedPtr wibotic_info_pub_;
 
   void WiboticInfoTimerCallback();
+
+  wibotic_msgs::msg::WiboticInfo ConvertWiboticInfoToMsg(const wibotic::WiBoticInfo& wibotic_info);
 };
 
 }  // namespace wibotic_connector_can
