@@ -17,10 +17,16 @@
 namespace wibotic_connector_can
 {
 WiboticCanDriverNode::WiboticCanDriverNode(
-  const std::string & node_name, const rclcpp::NodeOptions & options)
-: rclcpp::Node(node_name, options)
+  const std::string & node_name, WiboticCanDriverInterface::SharedPtr wibotic_can_driver,
+  const rclcpp::NodeOptions & options)
+: rclcpp::Node(node_name, options), wibotic_can_driver_(wibotic_can_driver)
+
 {
   RCLCPP_INFO(this->get_logger(), "Initializing node.");
+  if (!wibotic_can_driver_) {
+    throw std::runtime_error("Wibotic CAN driver is not initialized.");
+  }
+
   DeclareParameters();
   GetParameters();
 
@@ -53,11 +59,17 @@ void WiboticCanDriverNode::GetParameters()
 
 void WiboticCanDriverNode::CreateWiboticCanDriver()
 {
-  wibotic_can_driver_ = std::make_unique<WiboticCanDriver>(
-    can_iface_name_, uavcan_node_id_, uavcan_node_name_);
+  wibotic_can_driver_->SetUavCanSettings(can_iface_name_, uavcan_node_id_, uavcan_node_name_);
   wibotic_can_driver_->CreateUavCanNode();
   wibotic_can_driver_->CreateWiboticInfoSubscriber();
   wibotic_can_driver_->Activate();
+}
+
+wibotic::WiBoticInfo WiboticCanDriverNode::GetWiboticInfo()
+{
+  const auto update_time_ms = static_cast<std::size_t>(update_time_s_ * 1000);
+  wibotic_can_driver_->Spin(update_time_ms);
+  return wibotic_can_driver_->GetWiboticInfo();
 }
 
 void WiboticCanDriverNode::WiboticInfoTimerCallback()
@@ -67,10 +79,7 @@ void WiboticCanDriverNode::WiboticInfoTimerCallback()
   }
 
   try {
-    const auto update_time_ms = static_cast<std::size_t>(update_time_s_ * 1000);
-    wibotic_can_driver_->Spin(update_time_ms);
-    auto wibotic_info = wibotic_can_driver_->GetWiboticInfo();
-
+    auto wibotic_info = GetWiboticInfo();
     wibotic_info_pub_->publish(ConvertWiboticInfoToMsg(wibotic_info));
   } catch (const std::runtime_error & e) {
     RCLCPP_WARN(this->get_logger(), e.what());

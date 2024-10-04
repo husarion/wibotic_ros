@@ -24,7 +24,9 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
 
-  auto wibotic_can_driver_node = std::make_shared<wibotic_connector_can::WiboticCanDriverNode>("wibotic_can_driver");
+  auto wibotic_can_driver = std::make_shared<wibotic_connector_can::WiboticCanDriver>();
+  auto wibotic_can_driver_node = std::make_shared<wibotic_connector_can::WiboticCanDriverNode>(
+    "wibotic_can_driver", wibotic_can_driver);
 
   try {
     rclcpp::spin(wibotic_can_driver_node);

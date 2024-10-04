@@ -1,5 +1,5 @@
 ---
-name: Run panther unit tests
+name: Run unit tests
 
 on:
   workflow_dispatch:

@@ -21,6 +21,8 @@
 
 #include "wibotic_msgs/msg/wibotic_info.hpp"
 
+// RCLCPP is compiling with C++17, so we need to define UAVCAN_CPP_VERSION to UAVCAN_CPP11
+// to avoid compilation errors and silent them.
 #define UAVCAN_CPP_VERSION UAVCAN_CPP11
 #include "wibotic_connector_can/wibotic_can_driver.hpp"
 
@@ -29,28 +31,30 @@ namespace wibotic_connector_can
 class WiboticCanDriverNode : public rclcpp::Node
 {
 public:
-  WiboticCanDriverNode(const std::string& node_name,
-                                             const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
+  WiboticCanDriverNode(
+    const std::string & node_name, WiboticCanDriverInterface::SharedPtr wibotic_can_driver,
+    const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 protected:
   void DeclareParameters();
   void GetParameters();
 
   void CreateWiboticCanDriver();
+  wibotic::WiBoticInfo GetWiboticInfo();
+
+  void WiboticInfoTimerCallback();
+
+  wibotic_msgs::msg::WiboticInfo ConvertWiboticInfoToMsg(const wibotic::WiBoticInfo & wibotic_info);
 
   std::string can_iface_name_;
   std::size_t uavcan_node_id_;
   std::string uavcan_node_name_;
   float update_time_s_;
 
-  std::unique_ptr<WiboticCanDriver> wibotic_can_driver_;
+  WiboticCanDriverInterface::SharedPtr wibotic_can_driver_;
 
   rclcpp::TimerBase::SharedPtr wibotic_info_timer_;
   rclcpp::Publisher<wibotic_msgs::msg::WiboticInfo>::SharedPtr wibotic_info_pub_;
-
-  void WiboticInfoTimerCallback();
-
-  wibotic_msgs::msg::WiboticInfo ConvertWiboticInfoToMsg(const wibotic::WiBoticInfo& wibotic_info);
 };
 
 }  // namespace wibotic_connector_can

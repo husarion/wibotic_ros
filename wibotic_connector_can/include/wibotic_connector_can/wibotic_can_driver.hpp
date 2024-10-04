@@ -18,8 +18,8 @@
 #include <memory>
 #include <queue>
 
-#include <uavcan_linux/uavcan_linux.hpp>
 #include <uavcan/helpers/ostream.hpp>
+#include <uavcan_linux/uavcan_linux.hpp>
 
 #include "wibotic_connector_can/uavcan_types/wibotic/WiBoticInfo.hpp"
 
@@ -36,6 +36,16 @@ public:
    * @brief Virtual destructor for the WiboticCanDriverInterface class.
    */
   virtual ~WiboticCanDriverInterface() = default;
+
+  /** *
+   * @param can_iface_name The name of the CAN interface.
+   * @param node_id The ID of the node.
+   * @param node_name The name of the node.
+   *
+   * @exception std::runtime_error Thrown if can interface cannot be found.
+   * */
+  virtual void SetUavCanSettings(
+    const std::string & can_iface_name, std::size_t node_id, const std::string & node_name) = 0;
 
   /**
    * @brief Creates the UAVCAN node.
@@ -56,9 +66,9 @@ public:
   /**
    * @brief Spins the Wibotic CAN driver.
    *
-   * @param miliseconds The time to spin in miliseconds.
+   * @param milliseconds The time to spin in milliseconds.
    */
-  virtual void Spin(std::size_t miliseconds) = 0;
+  virtual void Spin(std::size_t milliseconds) = 0;
 
   /**
    * @brief Gets the WiboticInfo message.
@@ -86,26 +96,26 @@ public:
  */
 class WiboticCanDriver : public WiboticCanDriverInterface
 {
-  typedef uavcan::MethodBinder<WiboticCanDriver*, void (WiboticCanDriver::*)(const wibotic::WiBoticInfo&)>
-      WiBoticInfoCallbackBinder;
+  typedef uavcan::MethodBinder<
+    WiboticCanDriver *, void (WiboticCanDriver::*)(const wibotic::WiBoticInfo &)>
+    WiBoticInfoCallbackBinder;
 
 public:
   /**
-   * @brief Constructor for the WiboticCanDriver class.
-   *
    * @param can_iface_name The name of the CAN interface.
    * @param node_id The ID of the node.
    * @param node_name The name of the node.
    *
    * @exception std::runtime_error Thrown if can interface cannot be found.
-   */
-  WiboticCanDriver(const std::string& can_iface_name, std::size_t node_id, const std::string& node_name);
+   * */
+  void SetUavCanSettings(
+    const std::string & can_iface_name, std::size_t node_id,
+    const std::string & node_name) override;
 
   /**
    * @brief Creates the UAVCAN node.
    */
   void CreateUavCanNode() override;
-
 
   void CreateWiboticInfoSubscriber() override;
 
@@ -114,18 +124,19 @@ public:
    *
    * It starts the UAVCAN node, sets it to operational mode and starts Wibotic subscriber.
    *
-   * @exception std::runtime_error Thrown if the node or subscriber does not exist and they does not start properly.
+   * @exception std::runtime_error Thrown if the node or subscriber does not exist and they does not
+   * start properly.
    */
   void Activate() override;
 
   /**
    * @brief Spins the Wibotic CAN driver.
    *
-   * @param miliseconds The time to spin in miliseconds.
+   * @param milliseconds The time to spin in milliseconds.
    *
    * @exception std::runtime_error Thrown if the node or subscriber does not spin properly.
    */
-  void Spin(std::size_t miliseconds) override;
+  void Spin(std::size_t milliseconds) override;
 
   /**
    * @brief Gets the WiboticInfo message.
@@ -144,7 +155,7 @@ protected:
    *
    * @param msg The WiboticInfo message.
    */
-  void WiboticInfoCallback(const wibotic::WiBoticInfo& msg);
+  void WiboticInfoCallback(const wibotic::WiBoticInfo & msg);
 
   std::string can_iface_name_;
   std::size_t node_id_;

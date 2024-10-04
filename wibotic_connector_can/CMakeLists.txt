@@ -56,8 +56,20 @@ install(TARGETS wibotic_connector_can wibotic_can_driver
         DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_cmake_gmock REQUIRED)
   find_package(ros_testing REQUIRED)
+
+  # Unit tests
+  ament_add_gmock(
+    ${PROJECT_NAME}_test_wibotic_can_driver_node
+    test/unit/test_wibotic_can_driver_node.cpp src/wibotic_can_driver_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_wibotic_can_driver_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  target_link_libraries(${PROJECT_NAME}_test_wibotic_can_driver_node
+                        wibotic_can_driver)
 
   # Integration tests
   option(TEST_INTEGRATION "Run integration tests" ON)
