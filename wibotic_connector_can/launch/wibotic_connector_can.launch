@@ -4,4 +4,3 @@
     <param name="uavcan_node_id" value="18" type="int" />
   </node>
 </launch>
-
