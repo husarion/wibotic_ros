@@ -1,8 +1,23 @@
-# Overview
+# wibotic_ros
 
-WiBotic ROS CAN Connector is a set of ROS packages that supports interacting with a WiBotic Onboard Charger over a CAN bus.
+The repository contains `wibotic_connector_can` and `wibotic_msgs` packages. It reads a CAN Bus thanks to the uavcan library and sends the measurements to ROS 2.
 
-The master branch of this repository remains synchronized with the latest WiBotic firmware release. Running firmware that matches with the equivalent WiBotic ROS CAN Connector version is strongly recommended. See the firmware update page on the WiBotic system GUI for more information about updating firmware.
+## ROS Nodes
+
+### wibotic_connector_can
+
+It reads a CAN Bus thanks to the uavcan library and sends the measurements to ROS 2.
+
+#### Publishes
+
+- `wibotic_info` [*wibotic_msgs/WiboticInfo*]: Wibotic charger measurements.
+
+#### Parameters
+
+- `~can_iface_name` [*string*, default: **can0**]: CAN BUS interface used for Wibotic receiver.
+- `uavcan_node_id_` [*int*, default: **20**]: Uavcan node ID.
+- `uavcan_node_name_` [*string*, default: **can0**]: Uavcan node name.
+- `update_time_s_` [*string*, default: **can0**]: The period of reading WiboticInfo on a CAN BUS.
 
 ## Add can interface
 

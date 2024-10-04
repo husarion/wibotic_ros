@@ -44,7 +44,7 @@ public:
   MOCK_METHOD(wibotic::WiBoticInfo, GetWiboticInfo, (), (override));
 
   // Nice mock suppresses warnings about uninteresting calls
-  // using NiceMock = testing::NiceMock<MockWiboticCanDriver>;
+  using NiceMock = testing::NiceMock<MockWiboticCanDriver>;
 };
 
 class WiboticCanDriverNodeWrapper : public wibotic_connector_can::WiboticCanDriverNode
