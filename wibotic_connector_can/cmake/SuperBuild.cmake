@@ -16,7 +16,6 @@ include(ExternalProject)
 
 set(DEPENDENCIES ep_libuavcan ep_platform_specific_components)
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ep_libuavcan/include)
 ExternalProject_Add(
   ep_libuavcan
   SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/ep_libuavcan/upstream
@@ -24,19 +23,32 @@ ExternalProject_Add(
   GIT_REPOSITORY https://github.com/OpenCyphal-Garage/libcyphal/
   GIT_TAG dcc3a4de237b7482e04543d2393c3a9385685312
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/ep_libuavcan
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
   INSTALL_COMMAND make install INSTALL_PREFIX=<INSTALL_DIR>
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
+  UPDATE_DISCONNECTED 1
+  BUILD_IN_SOURCE 1
+  STEP_TARGETS build)
 
 ExternalProject_Add(
-  ep_platform_specific_components
-  SOURCE_DIR
-    ${CMAKE_CURRENT_BINARY_DIR}/ep_platform_specific_components/upstream
-  SOURCE_SUBDIR linux/libuavcan
-  INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
+  ep_platform_specific_components # Name of the external project
   GIT_REPOSITORY
-    https://github.com/OpenCyphal-Garage/platform_specific_components/
-  GIT_TAG 4745ef59f57b7e1c34705b127ea8c7a35e3874c1
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
+    https://github.com/OpenCyphal-Garage/platform_specific_components/ # Repository
+                                                                       # URL
+  GIT_TAG 4745ef59f57b7e1c34705b127ea8c7a35e3874c1 # Specific commit
+  PREFIX
+    ${CMAKE_CURRENT_BINARY_DIR}/ep_platform_specific_components # Directory
+                                                                # where external
+                                                                # project will
+                                                                # be
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND
+    ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_BINARY_DIR}/ep_platform_specific_components/src/ep_platform_specific_components/linux/libuavcan/include
+    ${CMAKE_INSTALL_PREFIX}/include ${INSTALL_DIR})
+
+# Make sure that the install directory is created
+install(DIRECTORY ${INSTALL_DIR} DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 ExternalProject_Add(
   ep_wibotic_connector_can

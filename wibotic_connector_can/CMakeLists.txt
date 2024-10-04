@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.8)
 project(wibotic_connector_can)
-# Handle superbuild first option(USE_SUPERBUILD "Whether or not a superbuild
-# should be invoked" ON)
+# Handle superbuild first
+option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 
-# if(USE_SUPERBUILD) project(SUPERBUILD NONE) include(cmake/SuperBuild.cmake)
-# return() else() project(wibotic_connector_can) endif()
+if(USE_SUPERBUILD)
+  project(SUPERBUILD NONE)
+  include(cmake/SuperBuild.cmake)
+  return()
+else()
+  project(wibotic_connector_can)
+endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -16,20 +21,14 @@ foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
   find_package(${PACKAGE} REQUIRED)
 endforeach()
 
-find_library(UAVCAN_LIB uavcan REQUIRED)
-
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib/platform_specific_components/linux/libuavcan/include
-)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/libcyphal/libuavcan/include)
+include_directories(${CMAKE_INSTALL_PREFIX}/include)
 
 add_library(wibotic_can_driver src/wibotic_can_driver.cpp)
 target_compile_options(wibotic_can_driver PRIVATE -std=c++11)
 target_include_directories(
   wibotic_can_driver BEFORE
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/platform_specific_components/linux/libuavcan/uavcan_linux
+    ${CMAKE_CURRENT_BINARY_DIR}/wibotic_connector_can/ep_platform_specific_components/upstream/linux/libuavcan/uavcan_linux
 )
 target_include_directories(
   wibotic_can_driver
@@ -37,6 +36,8 @@ target_include_directories(
          $<INSTALL_INTERFACE:include>)
 
 ament_target_dependencies(wibotic_can_driver ${PACKAGE_DEPENDENCIES})
+
+set(UAVCAN_LIB ${CMAKE_INSTALL_PREFIX}/lib/libuavcan.a)
 
 target_link_libraries(wibotic_can_driver ${UAVCAN_LIB} rt)
 
