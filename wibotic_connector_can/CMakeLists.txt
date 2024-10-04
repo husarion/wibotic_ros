@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.8)
 project(wibotic_connector_can)
 # Handle superbuild first option(USE_SUPERBUILD "Whether or not a superbuild
 # should be invoked" ON)
@@ -40,7 +40,8 @@ ament_target_dependencies(wibotic_can_driver ${PACKAGE_DEPENDENCIES})
 
 target_link_libraries(wibotic_can_driver ${UAVCAN_LIB} rt)
 
-add_executable(wibotic_connector_can src/wibotic_can_driver_node.cpp src/main.cpp )
+add_executable(wibotic_connector_can src/wibotic_can_driver_node.cpp
+                                     src/main.cpp)
 target_compile_options(wibotic_connector_can PRIVATE -std=c++17)
 target_include_directories(
   wibotic_connector_can
@@ -53,5 +54,17 @@ target_link_libraries(wibotic_connector_can wibotic_can_driver)
 
 install(TARGETS wibotic_connector_can wibotic_can_driver
         DESTINATION lib/${PROJECT_NAME})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gmock REQUIRED)
+  find_package(ros_testing REQUIRED)
+
+  # Integration tests
+  option(TEST_INTEGRATION "Run integration tests" ON)
+  if(TEST_INTEGRATION)
+    add_ros_test(test/integration/wibotic_connector_can.test.py)
+  endif()
+
+endif()
 
 ament_package()
