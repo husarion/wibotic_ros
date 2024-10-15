@@ -4,7 +4,7 @@ The repository contains `wibotic_connector_can` and `wibotic_msgs` packages. It 
 
 ## Quick start
 
-### Add can interface
+### Add CAN interface
 
 ```bash
 sudo slcand -o -s6 -t hw -S 3000000 /dev/ttyACM0
