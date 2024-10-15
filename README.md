@@ -19,7 +19,7 @@ It reads a CAN Bus thanks to the uavcan library and sends the measurements to RO
 - `uavcan_node_name_` [*string*, default: **can0**]: Uavcan node name.
 - `update_time_s_` [*string*, default: **can0**]: The period of reading WiboticInfo on a CAN BUS.
 
-## Add can interface
+## Add CAN interface
 
 ```bash
 sudo slcand -o -s6 -t hw -S 3000000 /dev/ttyACM0
