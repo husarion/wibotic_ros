@@ -44,7 +44,7 @@ public:
    *
    * @exception std::runtime_error Thrown if can interface cannot be found.
    * */
-  virtual void SetUavCanSettings(
+  virtual void ConfigureUavCan(
     const std::string & can_iface_name, std::size_t node_id, const std::string & node_name) = 0;
 
   /**
@@ -92,7 +92,7 @@ public:
  * @brief Class for the Wibotic CAN driver.
  *
  * This class inherits from the `WiboticCanDriverInterface` and implements its methods.
- * Class communicates with CAN interface and gets WiboticInfo messages.
+ * Class communicates with CAN interface using libuavcan and gets WiboticInfo messages.
  */
 class WiboticCanDriver : public WiboticCanDriverInterface
 {
@@ -108,7 +108,7 @@ public:
    *
    * @exception std::runtime_error Thrown if can interface cannot be found.
    * */
-  void SetUavCanSettings(
+  void ConfigureUavCan(
     const std::string & can_iface_name, std::size_t node_id,
     const std::string & node_name) override;
 

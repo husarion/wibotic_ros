@@ -46,7 +46,7 @@ void WiboticCanDriverNode::DeclareParameters()
   this->declare_parameter("can_iface_name", "can0");
   this->declare_parameter("uavcan_node_id", 20);
   this->declare_parameter("uavcan_node_name", "com.wibotic.ros_connector");
-  this->declare_parameter("update_time_s", 1.0);
+  this->declare_parameter("update_time_s", 0.2);
 }
 
 void WiboticCanDriverNode::GetParameters()
@@ -59,7 +59,7 @@ void WiboticCanDriverNode::GetParameters()
 
 void WiboticCanDriverNode::CreateWiboticCanDriver()
 {
-  wibotic_can_driver_->SetUavCanSettings(can_iface_name_, uavcan_node_id_, uavcan_node_name_);
+  wibotic_can_driver_->ConfigureUavCan(can_iface_name_, uavcan_node_id_, uavcan_node_name_);
   wibotic_can_driver_->CreateUavCanNode();
   wibotic_can_driver_->CreateWiboticInfoSubscriber();
   wibotic_can_driver_->Activate();
@@ -69,6 +69,7 @@ wibotic::WiBoticInfo WiboticCanDriverNode::GetWiboticInfo()
 {
   const auto update_time_ms = static_cast<std::size_t>(update_time_s_ * 1000);
   wibotic_can_driver_->Spin(update_time_ms);
+
   return wibotic_can_driver_->GetWiboticInfo();
 }
 
@@ -78,8 +79,15 @@ void WiboticCanDriverNode::WiboticInfoTimerCallback()
     throw std::runtime_error("Trying to get WiboticInfo message from nonexisting driver.");
   }
 
+  wibotic::WiBoticInfo wibotic_info;
   try {
-    auto wibotic_info = GetWiboticInfo();
+    wibotic_info = GetWiboticInfo();
+  } catch (const std::runtime_error & e) {
+    // Skip if there is no messages.
+    return;
+  }
+
+  try {
     wibotic_info_pub_->publish(ConvertWiboticInfoToMsg(wibotic_info));
   } catch (const std::runtime_error & e) {
     RCLCPP_WARN(this->get_logger(), e.what());

@@ -16,7 +16,7 @@
 
 namespace wibotic_connector_can
 {
-void WiboticCanDriver::SetUavCanSettings(
+void WiboticCanDriver::ConfigureUavCan(
   const std::string & can_iface_name, std::size_t node_id, const std::string & node_name)
 {
   can_iface_name_ = can_iface_name;

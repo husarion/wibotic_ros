@@ -30,16 +30,11 @@ ExternalProject_Add(
   STEP_TARGETS build)
 
 ExternalProject_Add(
-  ep_platform_specific_components # Name of the external project
+  ep_platform_specific_components
   GIT_REPOSITORY
-    https://github.com/OpenCyphal-Garage/platform_specific_components/ # Repository
-                                                                       # URL
-  GIT_TAG 4745ef59f57b7e1c34705b127ea8c7a35e3874c1 # Specific commit
-  PREFIX
-    ${CMAKE_CURRENT_BINARY_DIR}/ep_platform_specific_components # Directory
-                                                                # where external
-                                                                # project will
-                                                                # be
+    https://github.com/OpenCyphal-Garage/platform_specific_components/
+  GIT_TAG 4745ef59f57b7e1c34705b127ea8c7a35e3874c1
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/ep_platform_specific_components
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND
@@ -47,7 +42,6 @@ ExternalProject_Add(
     ${CMAKE_CURRENT_BINARY_DIR}/ep_platform_specific_components/src/ep_platform_specific_components/linux/libuavcan/include
     ${CMAKE_INSTALL_PREFIX}/include ${INSTALL_DIR})
 
-# Make sure that the install directory is created
 install(DIRECTORY ${INSTALL_DIR} DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 ExternalProject_Add(

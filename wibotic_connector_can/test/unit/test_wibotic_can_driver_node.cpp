@@ -36,7 +36,7 @@ class MockWiboticCanDriver : public wibotic_connector_can::WiboticCanDriverInter
 {
 public:
   MOCK_METHOD(
-    void, SetUavCanSettings, (const std::string &, std::size_t, const std::string &), (override));
+    void, ConfigureUavCan, (const std::string &, std::size_t, const std::string &), (override));
   MOCK_METHOD(void, CreateUavCanNode, (), (override));
   MOCK_METHOD(void, CreateWiboticInfoSubscriber, (), (override));
   MOCK_METHOD(void, Activate, (), (override));
