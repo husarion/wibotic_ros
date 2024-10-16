@@ -1,9 +1,0 @@
-#
-# WiBotic Read
-#
-
-#
-# Parameter Name 
-# This must be the code for a valid parameter to read
-#
-uint16 parameter_id

@@ -1,50 +1,83 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(wibotic_connector_can)
+# Handle superbuild first
+option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 
-find_package(catkin REQUIRED COMPONENTS
-  rospy
-  std_msgs
-  message_generation
+if(USE_SUPERBUILD)
+  project(SUPERBUILD NONE)
+  include(cmake/SuperBuild.cmake)
+  return()
+else()
+  project(wibotic_connector_can)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+set(PACKAGE_DEPENDENCIES ament_cmake rclcpp wibotic_msgs)
+
+foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
+  find_package(${PACKAGE} REQUIRED)
+endforeach()
+
+include_directories(${CMAKE_INSTALL_PREFIX}/include)
+
+add_library(wibotic_can_driver src/wibotic_can_driver.cpp)
+target_compile_options(wibotic_can_driver PRIVATE -std=c++11)
+target_include_directories(
+  wibotic_can_driver BEFORE
+  PUBLIC
+    ${CMAKE_CURRENT_BINARY_DIR}/wibotic_connector_can/ep_platform_specific_components/upstream/linux/libuavcan/uavcan_linux
 )
+target_include_directories(
+  wibotic_can_driver
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include>)
 
-catkin_python_setup()
+ament_target_dependencies(wibotic_can_driver ${PACKAGE_DEPENDENCIES})
 
-###################################
-## catkin specific configuration ##
-###################################
+set(UAVCAN_LIB ${CMAKE_INSTALL_PREFIX}/lib/libuavcan.a)
 
-catkin_package(
- LIBRARIES wibotic_connector_can
- CATKIN_DEPENDS rospy std_msgs message_runtime wibotic_msg
-)
+target_link_libraries(wibotic_can_driver ${UAVCAN_LIB} rt)
 
-###########
-## Build ##
-###########
+add_executable(wibotic_connector_can src/wibotic_can_driver_node.cpp
+                                     src/main.cpp)
+target_compile_options(wibotic_connector_can PRIVATE -std=c++17)
+target_include_directories(
+  wibotic_connector_can
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include>)
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+ament_target_dependencies(wibotic_connector_can ${PACKAGE_DEPENDENCIES})
 
-#############
-## Install ##
-#############
+target_link_libraries(wibotic_connector_can wibotic_can_driver)
 
-catkin_install_python(
-  PROGRAMS src/wibotic_connector_can/wiboticros.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+install(TARGETS wibotic_connector_can wibotic_can_driver
+        DESTINATION lib/${PROJECT_NAME})
 
-install(
-  DIRECTORY
-  launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-)
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_gmock REQUIRED)
+  find_package(ros_testing REQUIRED)
 
-install(
-  DIRECTORY
-  src/wibotic_connector_can/uavcan_v0
-  src/wibotic_connector_can/uavcan_v1
-  src/wibotic_connector_can/uavcan_vendor_specific_types
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+  # Unit tests
+  ament_add_gmock(
+    ${PROJECT_NAME}_test_wibotic_can_driver_node
+    test/unit/test_wibotic_can_driver_node.cpp src/wibotic_can_driver_node.cpp)
+  target_include_directories(
+    ${PROJECT_NAME}_test_wibotic_can_driver_node
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+           $<INSTALL_INTERFACE:include>)
+  target_link_libraries(${PROJECT_NAME}_test_wibotic_can_driver_node
+                        wibotic_can_driver)
+
+  # Integration tests
+  option(TEST_INTEGRATION "Run integration tests" ON)
+  if(TEST_INTEGRATION)
+    add_ros_test(test/integration/wibotic_connector_can.test.py)
+  endif()
+
+endif()
+
+ament_package()
