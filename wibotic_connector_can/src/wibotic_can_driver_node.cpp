@@ -30,7 +30,13 @@ WiboticCanDriverNode::WiboticCanDriverNode(
   DeclareParameters();
   GetParameters();
 
-  CreateWiboticCanDriver();
+  try {
+    CreateWiboticCanDriver();
+  } catch (const uavcan_linux::Exception & e) {
+    RCLCPP_FATAL_STREAM(
+      this->get_logger(), "An occurred error during creating WiboticCanDriver: " << e.what());
+    throw;
+  }
 
   wibotic_info_pub_ = this->create_publisher<wibotic_msgs::msg::WiboticInfo>("wibotic_info", 10);
 
