@@ -7,8 +7,8 @@
   <maintainer email="support@husarion.com">Husarion</maintainer>
   <license>Apache License 2.0</license>
 
-  <url type="website">https://husarion.com/</url>
-  <url type="repository">https://github.com/husarion/wibotic_ros/tree/ros2</url>
+  <url type="website">https://husarion.com</url>
+  <url type="repository">https://github.com/husarion/wibotic_ros</url>
   <url type="bugtracker">https://github.com/husarion/wibotic_ros/issues</url>
 
   <author email="jakub.delicat@husarion.com">Jakub Delicat</author>
