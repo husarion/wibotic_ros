@@ -2,11 +2,8 @@
 name: Run unit tests
 
 on:
+  push:
   workflow_dispatch:
-  # TODO: ENABLE WHEN READY
-  # pull_request:
-  #     branches:
-  #         - ros2-devel
 
 jobs:
   test:
