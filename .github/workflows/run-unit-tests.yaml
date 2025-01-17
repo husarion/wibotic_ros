@@ -27,7 +27,7 @@ jobs:
             {
               "build": {
                 "packages-up-to": [
-                    "wibotic_ros"
+                    "wibotic_connector_can"
                 ],
                 "cmake-args": [
                     "-DCMAKE_BUILD_TYPE=Release",
@@ -36,7 +36,7 @@ jobs:
               },
               "test": {
                 "packages-up-to": [
-                    "wibotic_ros"
+                    "wibotic_connector_can"
                 ]
               }
             }
