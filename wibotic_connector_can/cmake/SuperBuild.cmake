@@ -14,8 +14,6 @@
 
 include(ExternalProject)
 
-set(DEPENDENCIES ep_libuavcan ep_platform_specific_components)
-
 ExternalProject_Add(
   ep_libuavcan
   SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/ep_libuavcan/upstream
@@ -31,6 +29,7 @@ ExternalProject_Add(
 
 ExternalProject_Add(
   ep_platform_specific_components
+  DEPENDS ep_libuavcan
   GIT_REPOSITORY
     https://github.com/OpenCyphal-Garage/platform_specific_components/
   GIT_TAG 4745ef59f57b7e1c34705b127ea8c7a35e3874c1
@@ -40,13 +39,13 @@ ExternalProject_Add(
   INSTALL_COMMAND
     ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_BINARY_DIR}/ep_platform_specific_components/src/ep_platform_specific_components/linux/libuavcan/include
-    ${CMAKE_INSTALL_PREFIX}/include ${INSTALL_DIR})
+    ${CMAKE_INSTALL_PREFIX}/include)
 
 install(DIRECTORY ${INSTALL_DIR} DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 ExternalProject_Add(
   ep_wibotic_connector_can
-  DEPENDS ${DEPENDENCIES}
+  DEPENDS ep_platform_specific_components
   SOURCE_DIR ${PROJECT_SOURCE_DIR}
   CMAKE_ARGS -DUSE_SUPERBUILD=OFF
   INSTALL_COMMAND ""
