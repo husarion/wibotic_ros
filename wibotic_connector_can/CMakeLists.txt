@@ -1,14 +1,9 @@
 cmake_minimum_required(VERSION 3.8)
 project(wibotic_connector_can)
-# Handle superbuild first
-option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 
+option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 if(USE_SUPERBUILD)
-  project(SUPERBUILD NONE)
   include(cmake/SuperBuild.cmake)
-  return()
-else()
-  project(wibotic_connector_can)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -24,12 +19,12 @@ endforeach()
 include_directories(${CMAKE_INSTALL_PREFIX}/include)
 
 add_library(wibotic_can_driver src/wibotic_can_driver.cpp)
+add_dependencies(wibotic_can_driver uavcan linux_uavcan)
 target_compile_options(wibotic_can_driver PRIVATE -std=c++11)
 target_include_directories(
   wibotic_can_driver BEFORE
-  PUBLIC
-    ${CMAKE_CURRENT_BINARY_DIR}/wibotic_connector_can/ep_platform_specific_components/upstream/linux/libuavcan/uavcan_linux
-)
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/uavcan/include
+         ${CMAKE_CURRENT_BINARY_DIR}/linux_uavcan/include)
 target_include_directories(
   wibotic_can_driver
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -37,17 +32,20 @@ target_include_directories(
 
 ament_target_dependencies(wibotic_can_driver ${PACKAGE_DEPENDENCIES})
 
-set(UAVCAN_LIB ${CMAKE_INSTALL_PREFIX}/lib/libuavcan.a)
+set(UAVCAN_LIB ${CMAKE_CURRENT_BINARY_DIR}/uavcan/lib/libuavcan.a)
 
 target_link_libraries(wibotic_can_driver ${UAVCAN_LIB} rt)
 
 add_executable(wibotic_connector_can src/wibotic_can_driver_node.cpp
                                      src/main.cpp)
+add_dependencies(wibotic_can_driver uavcan linux_uavcan)
 target_compile_options(wibotic_connector_can PRIVATE -std=c++17)
 target_include_directories(
   wibotic_connector_can
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-         $<INSTALL_INTERFACE:include>)
+         $<INSTALL_INTERFACE:include>
+         ${CMAKE_CURRENT_BINARY_DIR}/uavcan/include
+         ${CMAKE_CURRENT_BINARY_DIR}/linux_uavcan/include)
 
 ament_target_dependencies(wibotic_connector_can ${PACKAGE_DEPENDENCIES})
 
