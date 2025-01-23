@@ -19,10 +19,7 @@ ExternalProject_Add(
   GIT_REPOSITORY https://github.com/dronecan/libuavcan
   GIT_TAG main
   PREFIX uavcan
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/uavcan
-)
-
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/uavcan)
 
 ExternalProject_Add(
   linux_uavcan
@@ -38,4 +35,5 @@ ExternalProject_Add(
     ${CMAKE_BINARY_DIR}/linux_uavcan/src/linux_uavcan/linux/libuavcan/include
     ${CMAKE_BINARY_DIR}/linux_uavcan/include)
 
-install(DIRECTORY ${CMAKE_BINARY_DIR}/uavcan ${CMAKE_BINARY_DIR}/linux_uavcan DESTINATION include)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/uavcan ${CMAKE_BINARY_DIR}/linux_uavcan
+        DESTINATION include)

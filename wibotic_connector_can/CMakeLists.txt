@@ -23,10 +23,8 @@ add_dependencies(wibotic_can_driver uavcan linux_uavcan)
 target_compile_options(wibotic_can_driver PRIVATE -std=c++11)
 target_include_directories(
   wibotic_can_driver BEFORE
-  PUBLIC
-  ${CMAKE_CURRENT_BINARY_DIR}/uavcan/include
-  ${CMAKE_CURRENT_BINARY_DIR}/linux_uavcan/include
-  )
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/uavcan/include
+         ${CMAKE_CURRENT_BINARY_DIR}/linux_uavcan/include)
 target_include_directories(
   wibotic_can_driver
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -47,8 +45,7 @@ target_include_directories(
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:include>
          ${CMAKE_CURRENT_BINARY_DIR}/uavcan/include
-         ${CMAKE_CURRENT_BINARY_DIR}/linux_uavcan/include
-         )
+         ${CMAKE_CURRENT_BINARY_DIR}/linux_uavcan/include)
 
 ament_target_dependencies(wibotic_connector_can ${PACKAGE_DEPENDENCIES})
 
