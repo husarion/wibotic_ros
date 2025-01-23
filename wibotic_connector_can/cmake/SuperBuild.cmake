@@ -16,8 +16,9 @@ include(ExternalProject)
 
 ExternalProject_Add(
   uavcan
-  GIT_REPOSITORY https://github.com/dronecan/libuavcan
-  GIT_TAG main
+  # Probable newer repo also will work: https://github.com/dronecan/libuavcan
+  GIT_REPOSITORY https://github.com/OpenCyphal-Garage/libcyphal/
+  GIT_TAG dcc3a4de237b7482e04543d2393c3a9385685312
   PREFIX uavcan
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/uavcan)
 
