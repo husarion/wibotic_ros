@@ -19,12 +19,16 @@
 #include <queue>
 
 #include <uavcan/helpers/ostream.hpp>
+#include <uavcan/protocol/param_server.hpp>
 #include <uavcan_linux/uavcan_linux.hpp>
 
 #include "wibotic_connector_can/uavcan_types/wibotic/WiBoticInfo.hpp"
 
 namespace wibotic_connector_can
 {
+
+constexpr std::uint8_t WIBOTIC_RECEIVER_NODE_ID = 18;
+constexpr std::uint8_t WIBOTIC_CHARGER_ENABLE_PARAM_INDEX = 28;
 
 /**
  * @brief Abstract interface for the Wibotic CAN driver.
@@ -76,6 +80,18 @@ public:
    * @return The WiboticInfo message.
    */
   virtual wibotic::WiBoticInfo GetWiboticInfo() = 0;
+
+  /**
+   * @brief Sets the parameter request.
+   *
+   * The request will be sent int the next spin.
+   *
+   * @param request The parameter request.
+   */
+  virtual void SetParamRequest(uavcan::protocol::param::GetSet::Request request) = 0;
+  virtual void SetChargerRequestedState(bool state) = 0;
+  virtual bool GetChargerState() const = 0;
+  virtual void CallServiceAndSpinForResponse() = 0;
 
   /**
    * @brief Alias for a shared pointer to a WiboticCanDriverInterface object.
@@ -147,6 +163,18 @@ public:
    */
   wibotic::WiBoticInfo GetWiboticInfo() override;
 
+  void SetParamRequest(uavcan::protocol::param::GetSet::Request request) override;
+
+  void SetChargerRequestedState(bool state) override;
+
+  bool GetChargerState() const override;
+  void CallServiceAndSpinForResponse() override;
+
+  typedef uavcan::MethodBinder<
+    WiboticCanDriver *,
+    void (WiboticCanDriver::*)(const uavcan::ServiceCallResult<uavcan::protocol::param::GetSet> &)>
+    ParamCallbackBinder;
+
 protected:
   /**
    * @brief Callback for the WiboticInfo message.
@@ -157,13 +185,21 @@ protected:
    */
   void WiboticInfoCallback(const wibotic::WiBoticInfo & msg);
 
+  void ParamCallback(const uavcan::ServiceCallResult<uavcan::protocol::param::GetSet> & result);
+
+  void CallParamService(uavcan::protocol::param::GetSet::Request & request);
+
   std::string can_iface_name_;
   std::size_t node_id_;
   std::string node_name_;
   bool activated_ = false;
+  bool charger_enabled_requested_state_ = false;
+  bool charger_enabled_actual_state_ = false;
 
   uavcan_linux::NodePtr uavcan_node_;
   std::shared_ptr<uavcan::Subscriber<wibotic::WiBoticInfo>> wibotic_info_uavcan_sub_;
+  std::shared_ptr<uavcan::ServiceClient<uavcan::protocol::param::GetSet>> uavcan_param_client_;
+  std::shared_ptr<uavcan::protocol::param::GetSet::Request> uavcan_param_request_;
 
   std::queue<wibotic::WiBoticInfo> wibotic_info_queue_;
 };

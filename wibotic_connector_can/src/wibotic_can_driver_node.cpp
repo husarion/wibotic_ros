@@ -39,6 +39,10 @@ WiboticCanDriverNode::WiboticCanDriverNode(
   }
 
   wibotic_info_pub_ = this->create_publisher<wibotic_msgs::msg::WiboticInfo>("wibotic_info", 10);
+  wibotic_charger_enable_service_ = this->create_service<std_srvs::srv::SetBool>(
+    "wibotic_charger_enable", std::bind(
+                                &WiboticCanDriverNode::WiboticChargerEnableCallback, this,
+                                std::placeholders::_1, std::placeholders::_2));
 
   wibotic_info_timer_ = this->create_wall_timer(
     std::chrono::duration<float>(update_time_s_),
@@ -52,7 +56,7 @@ void WiboticCanDriverNode::DeclareParameters()
   this->declare_parameter("can_iface_name", "can0");
   this->declare_parameter("uavcan_node_id", 20);
   this->declare_parameter("uavcan_node_name", "com.wibotic.ros_connector");
-  this->declare_parameter("update_time_s", 0.2);
+  this->declare_parameter("update_time_s", 1.0);
 }
 
 void WiboticCanDriverNode::GetParameters()
@@ -74,7 +78,7 @@ void WiboticCanDriverNode::CreateWiboticCanDriver()
 wibotic::WiBoticInfo WiboticCanDriverNode::GetWiboticInfo()
 {
   const auto update_time_ms = static_cast<std::size_t>(update_time_s_ * 1000);
-  wibotic_can_driver_->Spin(update_time_ms);
+  wibotic_can_driver_->Spin(update_time_ms / 10);
 
   return wibotic_can_driver_->GetWiboticInfo();
 }
@@ -97,6 +101,34 @@ void WiboticCanDriverNode::WiboticInfoTimerCallback()
     wibotic_info_pub_->publish(ConvertWiboticInfoToMsg(wibotic_info));
   } catch (const std::runtime_error & e) {
     RCLCPP_WARN(this->get_logger(), e.what());
+  }
+}
+
+void WiboticCanDriverNode::WiboticChargerEnableCallback(
+  const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+  std::shared_ptr<std_srvs::srv::SetBool::Response> response)
+{
+  std::string message = "Charger correctly changed state.";
+  if (!wibotic_can_driver_) {
+    message = "Trying to enable charger on nonexisting driver.";
+    RCLCPP_ERROR_STREAM(this->get_logger(), message);
+    response->success = false;
+    response->message = message;
+    return;
+  }
+
+  wibotic_can_driver_->SetChargerRequestedState(request->data);
+
+  try {
+    wibotic_can_driver_->CallServiceAndSpinForResponse();
+    response->success = wibotic_can_driver_->GetChargerState() == request->data;
+    response->message = message;
+  } catch (const std::runtime_error & e) {
+    message = "Failed to change charger state: " + std::string(e.what());
+    RCLCPP_ERROR_STREAM(this->get_logger(), message);
+    response->success = false;
+    response->message = message;
+    return;
   }
 }
 

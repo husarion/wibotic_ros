@@ -29,6 +29,10 @@ namespace wibotic
 // This is dummy stream overload because the real one is in the uavcan library what is built with
 // C++11/
 std::ostream & operator<<(std::ostream & os, const WiBoticInfo &) { return os; }
+std::ostream & operator<<(std::ostream & os, const uavcan::protocol::param::GetSet::Request &)
+{
+  return os;
+}
 
 }  // namespace wibotic
 
@@ -42,6 +46,7 @@ public:
   MOCK_METHOD(void, Activate, (), (override));
   MOCK_METHOD(void, Spin, (std::size_t), (override));
   MOCK_METHOD(wibotic::WiBoticInfo, GetWiboticInfo, (), (override));
+  MOCK_METHOD(void, SetParamRequest, (uavcan::protocol::param::GetSet::Request), (override));
 
   // Nice mock suppresses warnings about uninteresting calls
   using NiceMock = testing::NiceMock<MockWiboticCanDriver>;

@@ -19,6 +19,8 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include <std_srvs/srv/set_bool.hpp>
+
 #include "wibotic_msgs/msg/wibotic_info.hpp"
 
 // RCLCPP is compiling with C++17, so we need to define UAVCAN_CPP_VERSION to UAVCAN_CPP11
@@ -28,6 +30,7 @@
 
 namespace wibotic_connector_can
 {
+
 class WiboticCanDriverNode : public rclcpp::Node
 {
 public:
@@ -43,6 +46,9 @@ protected:
   wibotic::WiBoticInfo GetWiboticInfo();
 
   void WiboticInfoTimerCallback();
+  void WiboticChargerEnableCallback(
+    const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+    std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
   wibotic_msgs::msg::WiboticInfo ConvertWiboticInfoToMsg(const wibotic::WiBoticInfo & wibotic_info);
 
@@ -55,6 +61,7 @@ protected:
 
   rclcpp::TimerBase::SharedPtr wibotic_info_timer_;
   rclcpp::Publisher<wibotic_msgs::msg::WiboticInfo>::SharedPtr wibotic_info_pub_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr wibotic_charger_enable_service_;
 };
 
 }  // namespace wibotic_connector_can
