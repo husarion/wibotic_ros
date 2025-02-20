@@ -73,6 +73,9 @@ void WiboticCanDriverNode::CreateWiboticCanDriver()
   wibotic_can_driver_->CreateUavCanNode();
   wibotic_can_driver_->CreateWiboticInfoSubscriber();
   wibotic_can_driver_->Activate();
+
+  wibotic_can_driver_->SetChargerRequestedState(false);
+  wibotic_can_driver_->CallServiceAndSpinForResponse();
 }
 
 wibotic::WiBoticInfo WiboticCanDriverNode::GetWiboticInfo()

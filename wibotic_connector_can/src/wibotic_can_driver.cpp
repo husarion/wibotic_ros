@@ -117,17 +117,17 @@ void WiboticCanDriver::CallServiceAndSpinForResponse()
   request.value.to<uavcan::protocol::param::Value::Tag::integer_value>() =
     charger_enabled_requested_state_;
 
-  const std::uint8_t max_service_call_retries = 10;
+  const std::uint8_t max_service_call_retries = 9;
   std::uint8_t service_call_retries = 0;
 
   CallParamService(request);
 
-  while (charger_enabled_requested_state_ != charger_enabled_actual_state_) {
+  while (charger_enabled_requested_state_ < charger_enabled_actual_state_) {
     try {
       Spin(10);
     } catch (const std::runtime_error & e) {
       std::cerr << e.what() << " Trial number: " << (int)service_call_retries + 1 << "/"
-                << (int)max_service_call_retries << std::endl;
+                << (int)max_service_call_retries + 1 << std::endl;
 
       if (service_call_retries >= max_service_call_retries) {
         throw std::runtime_error("Service call retries exceeded.");

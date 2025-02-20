@@ -111,8 +111,8 @@ public:
   using UniquePtr = std::unique_ptr<WiboticCanDriverInterface>;
 
 protected:
-  bool charger_enabled_actual_state_ = false;
-  bool charger_enabled_requested_state_ = false;
+  bool charger_enabled_actual_state_ = true;
+  bool charger_enabled_requested_state_ = true;
 };
 
 /**
