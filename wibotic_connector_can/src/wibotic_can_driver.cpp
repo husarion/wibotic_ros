@@ -101,22 +101,10 @@ wibotic::WiBoticInfo WiboticCanDriver::GetWiboticInfo()
   return wibotic_info;
 }
 
-void WiboticCanDriver::SetParamRequest(uavcan::protocol::param::GetSet::Request request)
-{
-  uavcan_param_request_ = std::make_shared<uavcan::protocol::param::GetSet::Request>(request);
-}
-
 void WiboticCanDriver::WiboticInfoCallback(const wibotic::WiBoticInfo & msg)
 {
   wibotic_info_queue_.push(msg);
 }
-
-void WiboticCanDriver::SetChargerRequestedState(bool state)
-{
-  charger_enabled_requested_state_ = state;
-}
-
-bool WiboticCanDriver::GetChargerState() const { return charger_enabled_actual_state_; }
 
 void WiboticCanDriver::CallServiceAndSpinForResponse()
 {

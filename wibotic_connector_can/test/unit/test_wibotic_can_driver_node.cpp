@@ -46,7 +46,9 @@ public:
   MOCK_METHOD(void, Activate, (), (override));
   MOCK_METHOD(void, Spin, (std::size_t), (override));
   MOCK_METHOD(wibotic::WiBoticInfo, GetWiboticInfo, (), (override));
-  MOCK_METHOD(void, SetParamRequest, (uavcan::protocol::param::GetSet::Request), (override));
+  MOCK_METHOD(void, CallServiceAndSpinForResponse, (), (override));
+  MOCK_METHOD(void, SetChargerRequestedState, (bool), ());
+  MOCK_METHOD(bool, GetChargerState, (), ());
 
   // Nice mock suppresses warnings about uninteresting calls
   using NiceMock = testing::NiceMock<MockWiboticCanDriver>;
@@ -89,6 +91,19 @@ TestWiboticCanDriverNode::TestWiboticCanDriverNode()
   wibotic_can_driver_ = std::make_shared<MockWiboticCanDriver>();
   wibotic_can_driver_node_ = std::make_unique<WiboticCanDriverNodeWrapper>(
     "wibotic_can_driver", wibotic_can_driver_);
+}
+
+TEST_F(TestWiboticCanDriverNode, GetChargerState)
+{
+  EXPECT_FALSE(wibotic_can_driver_->GetChargerState());
+}
+
+TEST_F(TestWiboticCanDriverNode, CallServiceAndSpinForResponseFail)
+{
+  ON_CALL(*wibotic_can_driver_, CallServiceAndSpinForResponse())
+    .WillByDefault(testing::Throw(std::runtime_error("Service call retries exceeded.")));
+
+  EXPECT_THROW(wibotic_can_driver_->CallServiceAndSpinForResponse(), std::runtime_error);
 }
 
 TEST_F(TestWiboticCanDriverNode, GetWiboticInfoEmptyQueue)
