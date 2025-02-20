@@ -1,4 +1,4 @@
-# wibotic_connector_can
+# wibotic_ros
 
 It reads a CAN Bus thanks to the uavcan library and sends the measurements to ROS 2.
 
