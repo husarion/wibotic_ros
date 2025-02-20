@@ -12,6 +12,10 @@ It reads a CAN Bus thanks to the uavcan library and sends the measurements to RO
 
 - `wibotic_info` [*wibotic_msgs/WiboticInfo*]: Wibotic charger measurements.
 
+#### Services
+
+- `wibotic_charger_enable` [*std_srvs/SetBool*]: Set Wibotic Charger state.
+
 #### Parameters
 
 - `~can_iface_name` [*string*, default: **can0**]: CAN BUS interface used for Wibotic receiver.
