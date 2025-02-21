@@ -49,7 +49,8 @@ public:
    * @exception std::runtime_error Thrown if can interface cannot be found.
    * */
   virtual void ConfigureUavCan(
-    const std::string & can_iface_name, std::size_t node_id, const std::string & node_name) = 0;
+    const std::string & can_iface_name, std::size_t node_id, const std::string & node_name,
+    std::size_t max_service_call_retries) = 0;
 
   /**
    * @brief Creates the UAVCAN node.
@@ -136,8 +137,8 @@ public:
    * @exception std::runtime_error Thrown if can interface cannot be found.
    * */
   void ConfigureUavCan(
-    const std::string & can_iface_name, std::size_t node_id,
-    const std::string & node_name) override;
+    const std::string & can_iface_name, std::size_t node_id, const std::string & node_name,
+    std::size_t max_service_call_retries) override;
 
   /**
    * @brief Creates the UAVCAN node.
@@ -205,6 +206,7 @@ protected:
   std::size_t node_id_;
   std::string node_name_;
   bool activated_ = false;
+  std::size_t max_service_call_retries_;
 
   uavcan_linux::NodePtr uavcan_node_;
   std::shared_ptr<uavcan::Subscriber<wibotic::WiBoticInfo>> wibotic_info_uavcan_sub_;

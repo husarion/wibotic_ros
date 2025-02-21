@@ -55,7 +55,9 @@ protected:
   std::string can_iface_name_;
   std::size_t uavcan_node_id_;
   std::string uavcan_node_name_;
-  float update_time_s_;
+  float update_time_;
+  float spin_duration_;
+  std::size_t max_service_call_retries_;
 
   WiboticCanDriverInterface::SharedPtr wibotic_can_driver_;
 

@@ -23,12 +23,10 @@
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-
-  auto wibotic_can_driver = std::make_shared<wibotic_connector_can::WiboticCanDriver>();
-  auto wibotic_can_driver_node = std::make_shared<wibotic_connector_can::WiboticCanDriverNode>(
-    "wibotic_can_driver", wibotic_can_driver);
-
   try {
+    auto wibotic_can_driver = std::make_shared<wibotic_connector_can::WiboticCanDriver>();
+    auto wibotic_can_driver_node = std::make_shared<wibotic_connector_can::WiboticCanDriverNode>(
+      "wibotic_can_driver", wibotic_can_driver);
     rclcpp::spin(wibotic_can_driver_node);
   } catch (const std::runtime_error & e) {
     std::cerr << "[wibotic_can_driver] Caught exception: " << e.what() << std::endl;

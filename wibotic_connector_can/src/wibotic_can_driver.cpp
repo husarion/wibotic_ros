@@ -17,9 +17,11 @@
 namespace wibotic_connector_can
 {
 void WiboticCanDriver::ConfigureUavCan(
-  const std::string & can_iface_name, std::size_t node_id, const std::string & node_name)
+  const std::string & can_iface_name, std::size_t node_id, const std::string & node_name,
+  std::size_t max_service_call_retries)
 {
   can_iface_name_ = can_iface_name;
+  max_service_call_retries_ = max_service_call_retries;
   node_id_ = node_id;
   node_name_ = node_name;
 }
@@ -57,7 +59,7 @@ void WiboticCanDriver::Activate()
       "Failed to init the client; error: " + std::to_string(client_init_res));
   }
 
-  uavcan_param_client_->setRequestTimeout(uavcan::MonotonicDuration::fromMSec(1000));
+  uavcan_param_client_->setRequestTimeout(uavcan::MonotonicDuration::fromMSec(100));
   uavcan_param_client_->setCallback(ParamCallbackBinder(this, &WiboticCanDriver::ParamCallback));
 
   uavcan_node_->setModeOperational();
@@ -117,19 +119,19 @@ void WiboticCanDriver::CallServiceAndSpinForResponse()
   request.value.to<uavcan::protocol::param::Value::Tag::integer_value>() =
     charger_enabled_requested_state_;
 
-  const std::uint8_t max_service_call_retries = 9;
   std::uint8_t service_call_retries = 0;
 
   CallParamService(request);
 
-  while (charger_enabled_requested_state_ < charger_enabled_actual_state_) {
+  while (charger_enabled_requested_state_ != charger_enabled_actual_state_) {
     try {
-      Spin(10);
+      Spin(100);
     } catch (const std::runtime_error & e) {
-      std::cerr << e.what() << " Trial number: " << (int)service_call_retries + 1 << "/"
-                << (int)max_service_call_retries + 1 << std::endl;
+      std::cerr << "WiboticCan Driver: " << e.what()
+                << " Trial number: " << (int)service_call_retries + 1 << "/"
+                << (int)max_service_call_retries_ << std::endl;
 
-      if (service_call_retries >= max_service_call_retries) {
+      if (service_call_retries == max_service_call_retries_ - 1u) {
         throw std::runtime_error("Service call retries exceeded.");
       }
 
@@ -151,7 +153,7 @@ void WiboticCanDriver::ParamCallback(
   const uavcan::ServiceCallResult<uavcan::protocol::param::GetSet> & result)
 {
   if (result.isSuccessful()) {
-    std::cout << "Service call successful" << std::endl;
+    std::cout << "WiboticCan Driver: Enable service call successful" << std::endl;
 
     auto value = result.getResponse().value.integer_value;
     charger_enabled_actual_state_ = static_cast<bool>(value);

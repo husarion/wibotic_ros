@@ -45,7 +45,7 @@ WiboticCanDriverNode::WiboticCanDriverNode(
                                 std::placeholders::_1, std::placeholders::_2));
 
   wibotic_info_timer_ = this->create_wall_timer(
-    std::chrono::duration<float>(update_time_s_),
+    std::chrono::duration<float>(update_time_),
     std::bind(&WiboticCanDriverNode::WiboticInfoTimerCallback, this));
 
   RCLCPP_INFO(this->get_logger(), "Node initialized successfully.");
@@ -56,7 +56,9 @@ void WiboticCanDriverNode::DeclareParameters()
   this->declare_parameter("can_iface_name", "can0");
   this->declare_parameter("uavcan_node_id", 20);
   this->declare_parameter("uavcan_node_name", "com.wibotic.ros_connector");
-  this->declare_parameter("update_time_s", 1.0);
+  this->declare_parameter("update_time", 1.0);
+  this->declare_parameter("max_service_call_retries", 10);
+  this->declare_parameter("spin_duration", 0.1);
 }
 
 void WiboticCanDriverNode::GetParameters()
@@ -64,12 +66,19 @@ void WiboticCanDriverNode::GetParameters()
   can_iface_name_ = this->get_parameter("can_iface_name").as_string();
   uavcan_node_id_ = this->get_parameter("uavcan_node_id").as_int();
   uavcan_node_name_ = this->get_parameter("uavcan_node_name").as_string();
-  update_time_s_ = this->get_parameter("update_time_s").as_double();
+  update_time_ = this->get_parameter("update_time").as_double();
+  max_service_call_retries_ = this->get_parameter("max_service_call_retries").as_int();
+  spin_duration_ = this->get_parameter("spin_duration").as_double();
+
+  if (update_time_ < spin_duration_) {
+    throw std::runtime_error("Update time must be greater than spin duration.");
+  }
 }
 
 void WiboticCanDriverNode::CreateWiboticCanDriver()
 {
-  wibotic_can_driver_->ConfigureUavCan(can_iface_name_, uavcan_node_id_, uavcan_node_name_);
+  wibotic_can_driver_->ConfigureUavCan(
+    can_iface_name_, uavcan_node_id_, uavcan_node_name_, max_service_call_retries_);
   wibotic_can_driver_->CreateUavCanNode();
   wibotic_can_driver_->CreateWiboticInfoSubscriber();
   wibotic_can_driver_->Activate();
@@ -80,8 +89,8 @@ void WiboticCanDriverNode::CreateWiboticCanDriver()
 
 wibotic::WiBoticInfo WiboticCanDriverNode::GetWiboticInfo()
 {
-  const auto update_time_ms = static_cast<std::size_t>(update_time_s_ * 1000);
-  wibotic_can_driver_->Spin(update_time_ms / 10);
+  const auto spin_duration_ms = static_cast<std::size_t>(spin_duration_ * 1000);
+  wibotic_can_driver_->Spin(spin_duration_ms);
 
   return wibotic_can_driver_->GetWiboticInfo();
 }
