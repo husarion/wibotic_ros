@@ -10,7 +10,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-set(PACKAGE_DEPENDENCIES ament_cmake rclcpp wibotic_msgs)
+set(PACKAGE_DEPENDENCIES ament_cmake rclcpp wibotic_msgs std_srvs)
 
 foreach(PACKAGE IN ITEMS ${PACKAGE_DEPENDENCIES})
   find_package(${PACKAGE} REQUIRED)

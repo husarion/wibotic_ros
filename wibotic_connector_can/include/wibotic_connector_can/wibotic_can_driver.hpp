@@ -19,12 +19,16 @@
 #include <queue>
 
 #include <uavcan/helpers/ostream.hpp>
+#include <uavcan/protocol/param_server.hpp>
 #include <uavcan_linux/uavcan_linux.hpp>
 
 #include "wibotic_connector_can/uavcan_types/wibotic/WiBoticInfo.hpp"
 
 namespace wibotic_connector_can
 {
+
+constexpr std::uint8_t WIBOTIC_RECEIVER_NODE_ID = 18;
+constexpr std::uint8_t WIBOTIC_CHARGER_ENABLE_PARAM_INDEX = 28;
 
 /**
  * @brief Abstract interface for the Wibotic CAN driver.
@@ -45,7 +49,8 @@ public:
    * @exception std::runtime_error Thrown if can interface cannot be found.
    * */
   virtual void ConfigureUavCan(
-    const std::string & can_iface_name, std::size_t node_id, const std::string & node_name) = 0;
+    const std::string & can_iface_name, std::size_t node_id, const std::string & node_name,
+    std::size_t max_service_call_retries) = 0;
 
   /**
    * @brief Creates the UAVCAN node.
@@ -78,6 +83,25 @@ public:
   virtual wibotic::WiBoticInfo GetWiboticInfo() = 0;
 
   /**
+   * @brief Calls the service and spins for the response.
+   */
+  virtual void CallServiceAndSpinForResponse() = 0;
+
+  /**
+   * @brief Sets the charger requested state.
+   *
+   * @param state The requested state.
+   */
+  void SetChargerRequestedState(bool state) { charger_enabled_requested_state_ = state; }
+
+  /**
+   * @brief Gets the charger state.
+   *
+   * @return The charger state.
+   */
+  bool GetChargerState() const { return charger_enabled_actual_state_; }
+
+  /**
    * @brief Alias for a shared pointer to a WiboticCanDriverInterface object.
    */
   using SharedPtr = std::shared_ptr<WiboticCanDriverInterface>;
@@ -86,6 +110,10 @@ public:
    * @brief Alias for a unique pointer to a WiboticCanDriverInterface object.
    */
   using UniquePtr = std::unique_ptr<WiboticCanDriverInterface>;
+
+protected:
+  bool charger_enabled_actual_state_ = true;
+  bool charger_enabled_requested_state_ = true;
 };
 
 /**
@@ -109,14 +137,17 @@ public:
    * @exception std::runtime_error Thrown if can interface cannot be found.
    * */
   void ConfigureUavCan(
-    const std::string & can_iface_name, std::size_t node_id,
-    const std::string & node_name) override;
+    const std::string & can_iface_name, std::size_t node_id, const std::string & node_name,
+    std::size_t max_service_call_retries) override;
 
   /**
    * @brief Creates the UAVCAN node.
    */
   void CreateUavCanNode() override;
 
+  /**
+   * @brief Creates the WiboticInfo subscriber.
+   */
   void CreateWiboticInfoSubscriber() override;
 
   /**
@@ -147,6 +178,16 @@ public:
    */
   wibotic::WiBoticInfo GetWiboticInfo() override;
 
+  /**
+   * @brief Calls the service and spins for the response.
+   */
+  void CallServiceAndSpinForResponse() override;
+
+  typedef uavcan::MethodBinder<
+    WiboticCanDriver *,
+    void (WiboticCanDriver::*)(const uavcan::ServiceCallResult<uavcan::protocol::param::GetSet> &)>
+    ParamCallbackBinder;
+
 protected:
   /**
    * @brief Callback for the WiboticInfo message.
@@ -157,13 +198,20 @@ protected:
    */
   void WiboticInfoCallback(const wibotic::WiBoticInfo & msg);
 
+  void ParamCallback(const uavcan::ServiceCallResult<uavcan::protocol::param::GetSet> & result);
+
+  void CallParamService(uavcan::protocol::param::GetSet::Request & request);
+
   std::string can_iface_name_;
   std::size_t node_id_;
   std::string node_name_;
   bool activated_ = false;
+  std::size_t max_service_call_retries_;
 
   uavcan_linux::NodePtr uavcan_node_;
   std::shared_ptr<uavcan::Subscriber<wibotic::WiBoticInfo>> wibotic_info_uavcan_sub_;
+  std::shared_ptr<uavcan::ServiceClient<uavcan::protocol::param::GetSet>> uavcan_param_client_;
+  std::shared_ptr<uavcan::protocol::param::GetSet::Request> uavcan_param_request_;
 
   std::queue<wibotic::WiBoticInfo> wibotic_info_queue_;
 };
