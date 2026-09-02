@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(wibotic_connector_can)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 option(USE_SUPERBUILD "Whether or not a superbuild should be invoked" ON)
 if(USE_SUPERBUILD)
   include(cmake/SuperBuild.cmake)
@@ -20,7 +24,8 @@ include_directories(${CMAKE_INSTALL_PREFIX}/include)
 
 add_library(wibotic_can_driver src/wibotic_can_driver.cpp)
 add_dependencies(wibotic_can_driver uavcan linux_uavcan)
-target_compile_options(wibotic_can_driver PRIVATE -std=c++11)
+target_compile_definitions(wibotic_can_driver
+                           PUBLIC UAVCAN_CPP_VERSION=UAVCAN_CPP11)
 target_include_directories(
   wibotic_can_driver BEFORE
   PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/uavcan/include
@@ -39,7 +44,6 @@ target_link_libraries(wibotic_can_driver ${UAVCAN_LIB} rt)
 add_executable(wibotic_connector_can src/wibotic_can_driver_node.cpp
                                      src/main.cpp)
 add_dependencies(wibotic_can_driver uavcan linux_uavcan)
-target_compile_options(wibotic_connector_can PRIVATE -std=c++17)
 target_include_directories(
   wibotic_connector_can
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
